@@ -1,0 +1,15 @@
+{
+  "name": "dana-khaing-plugins",
+  "owner": {
+    "name": "Dana Khaing",
+    "email": "eikzins0@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "task-announcer",
+      "source": "./",
+      "description": "Voice + visual notification when Claude Code finishes a task (macOS only).",
+      "version": "0.1.0"
+    }
+  ]
+}
