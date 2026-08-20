@@ -1,0 +1,12 @@
+{
+  "name": "task-announcer",
+  "version": "0.1.0",
+  "description": "Speaks and shows a desktop notification when Claude Code finishes responding (macOS only).",
+  "author": {
+    "name": "Dana Khaing",
+    "email": "eikzins0@gmail.com"
+  },
+  "homepage": "https://github.com/dana-khaing/task-announcer",
+  "license": "MIT",
+  "keywords": ["hooks", "macos", "tts", "notifications", "accessibility", "productivity"]
+}
