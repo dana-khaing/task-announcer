@@ -12,7 +12,7 @@ NOTIFY_ENABLED="${TASK_ANNOUNCER_NOTIFY:-1}"
 SAY_VOICE="${TASK_ANNOUNCER_SAY_VOICE:-}"
 SAY_RATE="${TASK_ANNOUNCER_SAY_RATE:-190}"
 MAX_SPEECH_CHARS="${TASK_ANNOUNCER_MAX_CHARS:-420}"
-MAX_NOTIFY_CHARS=180
+MAX_NOTIFY_CHARS="${TASK_ANNOUNCER_MAX_NOTIFY_CHARS:-180}"
 DEBUG="${TASK_ANNOUNCER_DEBUG:-0}"
 DEBUG_LOG="$HOME/.claude/task-announcer-debug.log"
 
@@ -37,19 +37,19 @@ if command -v jq >/dev/null 2>&1; then
   # The Stop hook payload includes the final response text directly — no
   # need to parse the transcript ourselves in the common case.
   SUMMARY="$(printf '%s' "$INPUT" | jq -r '.last_assistant_message // empty' 2>/dev/null)"
-fi
 
-if [ -z "$SUMMARY" ] && command -v jq >/dev/null 2>&1; then
-  # Fallback for older Claude Code versions without last_assistant_message:
-  # parse the transcript JSONL for the last assistant message's text blocks.
-  TRANSCRIPT_PATH="$(printf '%s' "$INPUT" | jq -r '.transcript_path // empty' 2>/dev/null)"
-  if [ -n "$TRANSCRIPT_PATH" ] && [ -f "$TRANSCRIPT_PATH" ]; then
-    SUMMARY="$(jq -rs '
-      [ .[] | select(.type == "assistant") ] | last
-      | (.message.content // [])
-      | map(select(.type == "text") | .text)
-      | join(" ")
-    ' "$TRANSCRIPT_PATH" 2>/dev/null)"
+  if [ -z "$SUMMARY" ]; then
+    # Fallback for older Claude Code versions without last_assistant_message:
+    # parse the transcript JSONL for the last assistant message's text blocks.
+    TRANSCRIPT_PATH="$(printf '%s' "$INPUT" | jq -r '.transcript_path // empty' 2>/dev/null)"
+    if [ -n "$TRANSCRIPT_PATH" ] && [ -f "$TRANSCRIPT_PATH" ]; then
+      SUMMARY="$(jq -rs '
+        [ .[] | select(.type == "assistant") ] | last
+        | (.message.content // [])
+        | map(select(.type == "text") | .text)
+        | join(" ")
+      ' "$TRANSCRIPT_PATH" 2>/dev/null)"
+    fi
   fi
 fi
 

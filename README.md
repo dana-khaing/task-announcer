@@ -52,7 +52,8 @@ All optional, set as environment variables before starting Claude Code:
 | `TASK_ANNOUNCER_LEAD_IN` | `Claude has finished the task.` | Spoken lead-in phrase |
 | `TASK_ANNOUNCER_SAY_VOICE` | (system default) | A macOS voice name, e.g. `Samantha` |
 | `TASK_ANNOUNCER_SAY_RATE` | `190` | Speech rate in words per minute |
-| `TASK_ANNOUNCER_MAX_CHARS` | `420` | Max characters spoken/shown from the response |
+| `TASK_ANNOUNCER_MAX_CHARS` | `420` | Max characters spoken from the response |
+| `TASK_ANNOUNCER_MAX_NOTIFY_CHARS` | `180` | Max characters shown in the notification banner |
 | `TASK_ANNOUNCER_DEBUG` | `0` | Set to `1` to log payload + parsed summary to `~/.claude/task-announcer-debug.log` |
 
 ## Local development
