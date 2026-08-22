@@ -50,3 +50,25 @@ design only — deliberately not implemented yet, since it has a real
 architectural blind spot (no hook fires during a long stretch of pure
 text generation with no tool calls) that's worth thinking through
 properly rather than rushing.
+
+## 2026-08-22 — Refactor & refine pass
+
+Surveyed the repo before its initial release. It's small (~110 lines
+across the hook script and its helper), so I stayed strict about only
+fixing things with a real, evidenced cost rather than manufacturing
+busywork on a codebase this size. Two things qualified:
+
+- `text-utils.sh` had a dead regex — an anchored `s/^#+ //g` that never
+  fired anything the following unanchored `s/#+//g` didn't already
+  cover. Confirmed by re-checking the actual markdown-cleanup output
+  from Day 2's live test before removing it.
+- `MAX_NOTIFY_CHARS` was the one hardcoded value in
+  `announce-completion.sh` that didn't follow the `TASK_ANNOUNCER_*`
+  env-var pattern every other setting uses — inconsistent with itself
+  and with the README's config table. Made it configurable
+  (`TASK_ANNOUNCER_MAX_NOTIFY_CHARS`) and documented it.
+
+Also folded in a small duplicate `command -v jq` check while touching
+that block. Re-ran the same real-transcript regression test used on Day
+2 afterward — output was identical, confirming none of this changed
+observable behavior.
