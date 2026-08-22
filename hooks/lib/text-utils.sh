@@ -6,7 +6,7 @@
 clean_text() {
   printf '%s' "$1" \
     | tr '\n' ' ' \
-    | sed -E 's/```[a-zA-Z]*//g; s/`//g; s/\*\*//g; s/\*//g; s/^#+ //g; s/#+//g' \
+    | sed -E 's/```[a-zA-Z]*//g; s/`//g; s/\*\*//g; s/\*//g; s/#+//g' \
     | sed -E 's/\[([^]]*)\]\(([^)]*)\)/\1/g' \
     | sed -E 's/^[[:space:]]*[-•][[:space:]]+//g' \
     | tr -s ' '
