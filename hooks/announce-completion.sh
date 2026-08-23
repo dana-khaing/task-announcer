@@ -6,7 +6,37 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib/text-utils.sh
 source "$SCRIPT_DIR/lib/text-utils.sh"
 
-LEAD_IN="${TASK_ANNOUNCER_LEAD_IN:-Claude has finished the task.}"
+# A preset supplies an alternate default lead-in phrase below, without any
+# new macOS voice to install. It deliberately leaves the voice alone: macOS
+# Siri voices (Accessibility > Spoken Content > Manage Voices) sound closest
+# to Jarvis, but are only selectable as the Mac's system default voice, not
+# by name via `say -v` — so overriding SAY_VOICE here would fight a user who
+# already set a Siri voice as their System Voice. Set the System Voice
+# yourself if you want that; the preset only changes what's said, not the
+# engine speaking it. An explicit TASK_ANNOUNCER_LEAD_IN still wins over
+# whatever the preset picks.
+case "${TASK_ANNOUNCER_PRESET:-}" in
+  jarvis)
+    # A pool rather than one fixed line, so it doesn't get repetitive on
+    # every single turn — picked fresh each time the hook fires.
+    JARVIS_LEAD_INS=(
+      "All done! Task complete."
+      "Hey, I've wrapped things up for you."
+      "All set. Let me know what's next."
+      "Task complete, at your service."
+      "All finished here — ready when you are."
+      "Done and dusted!"
+      "Wrapped that up for you."
+      "All yours again — task complete."
+    )
+    PRESET_LEAD_IN="${JARVIS_LEAD_INS[$RANDOM % ${#JARVIS_LEAD_INS[@]}]}"
+    ;;
+  *)
+    PRESET_LEAD_IN=""
+    ;;
+esac
+
+LEAD_IN="${TASK_ANNOUNCER_LEAD_IN:-${PRESET_LEAD_IN:-Claude has finished the task.}}"
 VOICE_ENABLED="${TASK_ANNOUNCER_VOICE:-1}"
 NOTIFY_ENABLED="${TASK_ANNOUNCER_NOTIFY:-1}"
 SAY_VOICE="${TASK_ANNOUNCER_SAY_VOICE:-}"

@@ -72,3 +72,33 @@ Also folded in a small duplicate `command -v jq` check while touching
 that block. Re-ran the same real-transcript regression test used on Day
 2 afterward — output was identical, confirming none of this changed
 observable behavior.
+
+## 2026-08-23 — Jarvis preset
+
+Dana asked for a "Jarvis" (Iron Man) style voice, explicitly without
+installing anything. Went through a few live listening rounds to land on
+this:
+
+- Tried "Daniel" (British, already installed) as a stand-in Jarvis
+  voice — verdict from listening was "wrong voice."
+- Tried "Fred" — also rejected on listening.
+- Landed on macOS's actual Siri voice as the closest real match. It
+  requires a download, but through Spoken Content (Accessibility →
+  Manage Voices → "Siri Voice N" under English), not through Siri the
+  assistant — those are two unrelated systems, and only the Spoken
+  Content one is reachable by `say`, and even then only as the *system
+  default* voice, never by name via `say -v`. Confirmed this by testing
+  bare `say` (no `-v`) once System Voice was set to Siri Voice 1 — that
+  picked it up correctly.
+- That meant the preset shouldn't force any specific `-v` voice at all —
+  doing so would silently override whatever System Voice the user
+  picked. Removed the `Daniel` default that was there in an earlier
+  draft of this feature.
+- Lead-in wording went through a couple of rounds too: fixed phrase →
+  "too robotic," friendlier fixed phrase → "want it to vary every time."
+  Ended up with a small pool of friendly phrases the script picks from
+  at random per turn, so it doesn't get repetitive.
+
+Net result: `TASK_ANNOUNCER_PRESET=jarvis` changes only the lead-in
+phrasing; the voice comes entirely from the user's own System Voice
+choice, documented in the README as a manual step.
