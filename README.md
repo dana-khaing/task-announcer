@@ -55,6 +55,29 @@ All optional, set as environment variables before starting Claude Code:
 | `TASK_ANNOUNCER_MAX_CHARS` | `420` | Max characters spoken from the response |
 | `TASK_ANNOUNCER_MAX_NOTIFY_CHARS` | `180` | Max characters shown in the notification banner |
 | `TASK_ANNOUNCER_DEBUG` | `0` | Set to `1` to log payload + parsed summary to `~/.claude/task-announcer-debug.log` |
+| `TASK_ANNOUNCER_PRESET` | (none) | Set to `jarvis` for a friendlier, varied lead-in phrase (see below) |
+
+### The `jarvis` preset
+
+```
+TASK_ANNOUNCER_PRESET=jarvis
+```
+
+Swaps the fixed "Claude has finished the task." lead-in for a random pick
+from a small pool of friendlier phrases ("All done!", "All set. Let me
+know what's next.", etc.) — a different one each time, so it doesn't get
+repetitive. `TASK_ANNOUNCER_LEAD_IN`, if also set, still wins over the
+preset.
+
+The preset deliberately does **not** change the voice. macOS Siri voices
+are the closest thing to an actual Jarvis-style voice, but they're only
+selectable as your Mac's system default voice (System Settings →
+Accessibility → Spoken Content → Manage Voices → download a "Siri Voice
+N" under English) — they can't be picked by name via `say -v`. So: set
+your System Voice to a Siri voice yourself if you want that sound, and
+leave `TASK_ANNOUNCER_SAY_VOICE` unset — the plugin will pick it up
+automatically since it only overrides the voice when you explicitly set
+`TASK_ANNOUNCER_SAY_VOICE`.
 
 ## Local development
 
