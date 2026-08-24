@@ -102,3 +102,51 @@ this:
 Net result: `TASK_ANNOUNCER_PRESET=jarvis` changes only the lead-in
 phrasing; the voice comes entirely from the user's own System Voice
 choice, documented in the README as a manual step.
+
+## 2026-08-24 — Voice input (`bin/voice-inject.sh`)
+
+Dana wanted the other direction: speak an instruction instead of typing
+it, landing in the *actual live chat*, not a separate session. That
+constraint mattered a lot for the design.
+
+Researched Claude Code's `--input-format stream-json` headless mode
+first — it's real and genuinely persistent across turns, but only for a
+process a script spawns and owns itself. There's no documented way to
+feed input into an already-running *interactive* session; it only reads
+real keystrokes. So the actual mechanism here is OS-level keystroke
+simulation via `osascript` "System Events" — transcribe speech, then
+type it into whatever app has focus and press Return, exactly as if
+typed by hand. Chose this deliberately over the cleaner subprocess
+approach, because it's the only one that reaches a session that's
+already open.
+
+Installed `sox` and `whisper-cpp` via Homebrew and downloaded the
+`ggml-base.en.bin` model (~142 MiB, gitignored) for fully local/offline
+transcription — no cloud API, no key.
+
+Hit a real permission wall during live testing that's worth recording:
+`osascript "System Events" get name of frontmost process` succeeded
+without any special permission, which made it look like Accessibility
+access was already in place — but the actual `keystroke` command failed
+separately with `"osascript is not allowed to send keystrokes."` Reading
+the frontmost app's name and actually controlling the UI are gated by
+different permission checks. Walked through granting the terminal app
+Accessibility access at System Settings → Privacy & Security →
+Accessibility, distinct from the Notifications permission the `Stop`
+hook needed back on day one.
+
+Also found and fixed a real bug from my own first draft: the keystroke
+`osascript` calls had `2>/dev/null` on them, which would have silently
+swallowed that exact permission error in production instead of
+surfacing it. Removed the suppression and added an explicit error
+message pointing at the README's permission section.
+
+Verified the full loop live, twice — once with a raw `osascript`
+keystroke test that landed in this very conversation, and once running
+the actual script end to end (record → transcribe → inject → this
+chat received it as a real message → the existing `Stop` hook spoke the
+response). Noted one real, un-fixed limitation while testing: short
+utterances sometimes get their opening word clipped by the
+silence-onset detection (e.g. "what time is it" came through as just
+"time") — documented honestly in the README rather than claimed as
+solved.

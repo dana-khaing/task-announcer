@@ -79,6 +79,77 @@ leave `TASK_ANNOUNCER_SAY_VOICE` unset — the plugin will pick it up
 automatically since it only overrides the voice when you explicitly set
 `TASK_ANNOUNCER_SAY_VOICE`.
 
+## Voice input: `bin/voice-inject.sh`
+
+The `Stop` hook above covers voice *output*. `bin/voice-inject.sh` adds
+voice *input*: speak an instruction instead of typing it, and it's typed
+and submitted into your live Claude Code session automatically.
+
+**How it works:** it records your mic (auto-stopping after 3 seconds of
+silence), transcribes it locally and offline with `whisper.cpp`, and uses
+macOS Accessibility (`osascript` "System Events") to type the transcribed
+text into whichever app was frontmost when the script started, then
+presses Return. No new response-side code was needed for this — the
+existing `Stop` hook already speaks *every* response regardless of
+whether the prompt was typed or voice-injected, so the two features
+together form a full voice conversation loop.
+
+### Setup
+
+```
+brew install sox whisper-cpp
+mkdir -p models
+curl -L -o models/ggml-base.en.bin \
+  https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en.bin
+```
+
+**One-time manual step: Accessibility permission.** Typing text into
+another app requires this specific terminal app to be granted
+Accessibility access — a *different* permission than the notification
+one above. Go to **System Settings → Privacy & Security → Accessibility**
+and enable your terminal app (Terminal.app, iTerm2, etc). Without this,
+`osascript` fails with `"osascript is not allowed to send keystrokes."`
+— a clear, catchable error, not a silent failure.
+
+### Running it
+
+```
+./bin/voice-inject.sh
+```
+
+Run it in its own terminal tab/window (not the one you want text typed
+into — the script targets whatever app was frontmost *when it started*,
+so start it while your Claude Code session's window has focus, and it's
+fine for the voice-inject script itself to live in a background/separate
+tab from then on). It prints every transcription (`>>> ...`) before
+typing it, so you always have a visible log of exactly what's about to
+be submitted. Stop it with Ctrl+C.
+
+Config via env vars: `VOICE_INJECT_MODEL` (default
+`models/ggml-base.en.bin`), `VOICE_INJECT_SILENCE_SECS` (default `3.0`,
+how long a pause ends your turn).
+
+### Known limitations
+
+- **No wake word.** Once running, any sufficiently loud sound that trips
+  the silence detector — the TV, a conversation nearby — gets
+  transcribed and typed+submitted. Only run it when you actually want it
+  listening, and stop it (Ctrl+C) when you don't.
+- **Focus-dependent.** It re-focuses its target app right before every
+  injection, which protects against stray focus changes *between* turns,
+  but if you deliberately switch to another app while it's still running,
+  the next turn will forcibly steal focus back and type there. Stop the
+  script first if you're switching contexts.
+- **No permission gate of its own.** Simulated keystrokes are
+  indistinguishable from real typing to Claude Code, so whatever
+  permission mode your session is already running under (including a
+  `bypassPermissions` default, if that's configured) applies exactly as
+  it would to anything you typed by hand — voice-inject can't add a
+  stronger safety net on top of that.
+- **Short-phrase accuracy.** Very short utterances can occasionally get
+  their opening word clipped by the silence-onset detection — a real
+  quirk of this pipeline, not something this version fully solves.
+
 ## Local development
 
 Test without installing:
